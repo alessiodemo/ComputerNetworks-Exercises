@@ -45,3 +45,5 @@ int main() {
     check_memory();
     return 0;
 }
+
+//THE PURPOSE OF THE PROGRAM IS TO VERIFY THE ADDRESSES ASSIGNED TO THE VARIOUS VARIABLES (STACK, HEAP ...)

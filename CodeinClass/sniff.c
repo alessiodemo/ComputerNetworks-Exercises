@@ -1,79 +1,57 @@
 #include <stdio.h>
-#include <net/if.h>
-#include <arpa/inet.h>
-#include <sys/socket.h>
-#include <linux/if_packet.h>
-#include <net/ethernet.h> /* the L2 protocols */
-#include <errno.h>
-
-//structure definition
-struct arp_packet {
-    unsigned short htype; //hardware type 
-    unsigned short ptype; //protocol type
-    unsigned char hlen; //lenght of hardware address
-    unsigned char plen; //lenght of the protocol address
-    unsigned short op; //operation
-    unsigned char srcmac[6]; //MAC source
-    unsigned char srcip[4]; //IP source
-    unsigned char dstmac[6]; //MAC destination
-    unsigned char dstip[4]; //IP destination
-};
-    
-    struct eth_frame{
-    unsigned char dst[6]; //MAC destination
-    unsigned char src[6]; //MAC source
-    unsigned short type; //protocol type
-    unsigned char payload[1]; //packet data
-};
-
-//Node configuration
-unsigned char myip[4] = {212,71,252,26}; //IP of the node
-unsigned char mymac[6] = { 0xF2,0x3C,0x94,0x90,0x4F,0x44}; //MAC of the node
-unsigned char broadcast[6] = {0xFF,0xFF,0xFF,0xFF,0xFF,0xFF}; //broadcast MAC
-
-
-//Target address
-unsigned char target_ip = { 212,71,252,150};
+#include <net/if.h> // Needed for if_nametoindex() — gets the network interface index
+#include <arpa/inet.h> //Functions for IP address conversions
+#include <sys/socket.h> //socket functions
+#include <linux/if_packet.h> //for working with low-level packet sockets
+#include <net/ethernet.h> //defines the L2 protocols like ETH_P_ALL
+#include <errno.h> //for printing errors with errno
 
 int main(){
     //data structure creation
-     struct arp_packet * arp;
-     struct eth_frame * eth;
-
-     struct sockaddr_ll sll;
-     unsigned char buffer[1500];
+    
+     struct sockaddr_ll sll; // Structure for Layer 2 (Ethernet) socket addressing
+     unsigned char buffer[1500]; // Buffer to store the received packet
      int n,i,s;
      int len;
-     s = socket(AF_PACKET, SOCK_RAW, htons(ETH_P_ALL)); //socket creation -> socket raw at link level that catch all the packets
-     if  ( s==-1){ // if socket fails
+
+     /*
+     socket creation -> socket raw at link level that catch all the packets.
+     AF_PACKET: for raw link-layer access.
+     SOCK_RAW: raw socket to capture full packets.
+     htons(ETH_P_ALL): captures all Ethernet protocols .
+     */
+     s = socket(AF_PACKET, SOCK_RAW, htons(ETH_P_ALL)); 
+
+     //if it fails
+     if  ( s==-1){
             printf("Errno = %d\n",errno);
             perror("Socket Failed");
             return 1;
      }
-     eth = (struct eth_frame *)  buffer; //buffer for send and receive the packets
-     arp = (struct arp_packet *) eth->payload; //eth references to te inital part, arp ath the payload
 
-     //build the ethernet header
-     for(i=0;i<6;i++) {
-            eth->dst[i]=0xFF; //destination MAC = broadcast
-            eth->src[i]=mymac[i]; //source MAC = our MAC address
-     }
-     eth->type=htons(0x0806); //set type = ARP
 
-     //structure sockaddr_ll for identify the interface
+     //structure sockaddr_ll for identify the interface, clears the sockaddr_ll structure by setting all its bytes to 0
      for(i=0; i<sizeof(struct sockaddr_ll); i++) ((char *) &sll)[i]=0;
 
-     sll.sll_family = AF_PACKET;
-     sll.sll_ifindex = if_nametoindex("eth0"); //obtain interface index named "eth0"
+     sll.sll_family = AF_PACKET; // specifies the address family as Ethernet.
+     sll.sll_ifindex = if_nametoindex("eth0"); // gets the index of the "eth0" network interface
 
-     len = sizeof(struct sockaddr_ll);
+     len = sizeof(struct sockaddr_ll); // sets the length for the recvfrom call
 
-     n = recvfrom(s,buffer,1500, 0,(struct sockaddr *) &sll, &len); // blocks the program until the packet is received -> writes the data in the buffer
-     if(n==-1) { //if it fails
+    /*
+    Receives a packet from the eth0 interface.
+    Blocking call: the program waits until a packet is received.
+    The received data is stored in buffer.
+    */
+     n = recvfrom(s,buffer,1500, 0,(struct sockaddr *) &sll, &len); 
+
+    //if it fails
+     if(n==-1) { 
             printf("Errno = %d\n",errno);
             perror("Recvfrom Failed");
             return 1;
      }
+
      //prints the received packet
      for(i=0;i<n;i++)
         printf("%.3d (%.2X) ", buffer[i],buffer[i]); //prints every byte in decimal and exadecimal
@@ -83,11 +61,15 @@ int main(){
 
 
 /*
-In summary:
+In summary this program:
 
-The program receives an Ethernet packet (any type), interprets it as an ARP packet and prints it to the screen.
+    Creates a raw socket at the Ethernet level.
 
-It is ready for building a tool that analyzes ARP sniffing or is used to develop an ARP spoofing tool.
+    Listens for incoming packets on the eth0 interface.
 
-It does not send anything, it just sniffs (with an Ethernet header that could be used to send packets in broadcast).
+    Waits until a packet is received.
+
+    Prints the content of the packet byte-by-byte in both decimal and hexadecimal formats.
+
+It's a simple packet sniffer written in C using raw sockets on Linux.
 */

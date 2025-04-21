@@ -1,4 +1,4 @@
-#include<stdio.h>
+#include <stdio.h>
 #include <net/if.h>
 #include <arpa/inet.h>
 #include <sys/socket.h>
@@ -33,7 +33,7 @@ unsigned char broadcast[6] = {0xFF,0xFF,0xFF,0xFF,0xFF,0xFF};//broadcast MAC add
 
 
 //Target address
-unsigned char target_ip { 212,71,252,150}; //IP of the target machine
+unsigned char target_ip[4] = { 212,71,252,150}; //IP of the target machine
 
 int main(){
      struct arp_packet * arp;

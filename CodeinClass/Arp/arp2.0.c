@@ -94,7 +94,7 @@ sll.sll_ifindex = if_nametoindex("eth0"); // // Get interface index
 len = sizeof(struct sockaddr_ll);
 
 // Send the ARP request through the socket
-if (-1 == sendto(s, buffer, 1500, 0, (struct sockaddr *) &sll, len)) {
+if (-1 == sendto(s, buffer, 42, 0, (struct sockaddr *) &sll, len)) {
     perror("Send Failed");
     return 1;
 }
@@ -128,7 +128,7 @@ while(1) {
             for(i = 0; i < n; i++)
                 printf("%.3d (%.2X) ", buffer[i], buffer[i]);
             printf("\n");
-            printf("Target MAC: %x:%x:%x:%x:%x:%x", arp->srcmac[0], arp->srcmac[1], arp->srcmac[2], arp->srcmac[3], arp->srcmac[4], arp->srcmac[5], arp->srcmac[6]);
+            printf("Target MAC: %x:%x:%x:%x:%x:%x:%x", arp->srcmac[0], arp->srcmac[1], arp->srcmac[2], arp->srcmac[3], arp->srcmac[4], arp->srcmac[5], arp->srcmac[6]);
             return 0;
         }
     }

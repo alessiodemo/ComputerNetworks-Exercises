@@ -75,32 +75,6 @@ ip-> checksum = checksum((unsigned char *)ip,20);
 // Target IP to resolve
 unsigned char target_ip[4] = { 212,71,252,150};
 int s;
-// ARP resolution
-int resolve_ip(unsigned char * target, unsigned char * mac);
-// Print raw bytes in a buffer
-void print_buffer( unsigned char* buffer, int size);
-
-int main () {
-    unsigned char target_mac[6];        // To store resolved MAC address
-    int n, i;
-
-    // Create a raw socket to capture all Ethernet packets
-    s = socket(AF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
-    if (s == -1) {
-        printf("Errno = %d\n", errno);
-        perror("Socket Failed");
-        return 1;
-    }
-
-    // Try to resolve the IP to a MAC address via ARP
-    if (resolve_ip(target_ip, target_mac))
-        printf("Resolution Failed\n");
-    else {
-        printf("MAC: ");
-        print_buffer(target_mac, 6);    // Print the resolved MAC
-    }
-}
-
 
  // Print the contents of a buffer as decimal and hex
 void print_buffer( unsigned char* buffer, int size)
@@ -110,7 +84,6 @@ for(i=0; i<size; i++)
 	printf("%.3d (%.2X) ",buffer[i],buffer[i]);
 printf("\n");
 }
-
 
 //Function — sends ARP request and waits for a reply
 int resolve_ip(unsigned char * target, unsigned char * mac) {
@@ -189,5 +162,26 @@ int resolve_ip(unsigned char * target, unsigned char * mac) {
         }
     }
     return 1; // Timeout / failed to resolve
+}
+
+int main () {
+    unsigned char target_mac[6];        // To store resolved MAC address
+    int n, i;
+
+    // Create a raw socket to capture all Ethernet packets
+    s = socket(AF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
+    if (s == -1) {
+        printf("Errno = %d\n", errno);
+        perror("Socket Failed");
+        return 1;
+    }
+
+    // Try to resolve the IP to a MAC address via ARP
+    if (resolve_ip(target_ip, target_mac))
+        printf("Resolution Failed\n");
+    else {
+        printf("MAC: ");
+        print_buffer(target_mac, 6);    // Print the resolved MAC
+    }
 }
 

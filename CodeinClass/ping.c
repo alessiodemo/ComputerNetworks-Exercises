@@ -57,7 +57,8 @@ unsigned char mymac[6] = { 0xF2,0x3C,0x94, 0x90, 0x4F, 0x4b};
 // Broadcast MAC address (for ARP requests)
 unsigned char broadcast[6] = { 0xFF, 0xFF, 0xFF,0xFF,0xFF,0xFF};
 
-void forge_ip(struct ip_packet * ip, unsigned short totlen, unsigned char * dst)
+//This function constructs an IP packet, sets the header fields, and calculates the checksum
+void forge_ip(struct ip_datagram * ip, unsigned short totlen, unsigned char * dst)
 {
 ip-> ver_ihl = 0x45;
 ip-> tos = 0;
@@ -74,6 +75,8 @@ ip-> checksum = checksum((unsigned char *)ip,20);
 // Target address
 // Target IP to resolve
 unsigned char target_ip[4] = { 212,71,252,150};
+
+//other useful parameters
 int s;
 
  // Print the contents of a buffer as decimal and hex

@@ -21,8 +21,8 @@ int winsize;         // Current window size (number of unacknowledged packets)
 int seq=0;           // Current sequence number
 
 // Function to send a packet
-int pktsend(int id){
-    // Wait if the window is full
+int pktsend(int id){ 
+    // Wait if the window is full, until it receives a signal
     while(winsize == N) pause();
 
     struct bufelem * pkt;
@@ -43,7 +43,7 @@ unsigned char databuf[100];  // Unused buffer (possibly for future use)
 int bufstart=0;              // Start index for databuf (unused)
 
 // Handler for I/O signals (SIGIO)
-void myio(int signal) {
+void myio(int signal) { //if seq is 2(212),3(213),4(214),0(215) -> "(...)" -> "pkt id";  the ack=4; the new sequence is 0(215),1(216),2(217),3(217) 
     struct pollfd p[1];     // Poll structure for monitoring stdin
     int t=1;
     int i;
@@ -81,14 +81,14 @@ void mytimer(int signal){
     printf("Timer handler called\n");
 
     // If timeout not reached, increment time and return
-    if(mytime++ < TIMEOUT) return;
+    if(mytime++ < TIMEOUT) return; //timer tick advances
 
     mytime = 0;  // Reset timer
 
     // Resend all unacknowledged packets in the window
     for (i = 0; i < winsize; i++) {
         printf(" Resending pkt id = %d seq = %d\n",
-            pktbuf[(winstart + i) % N].id,
+            pktbuf[(winstart + i) % N].id, //
             pktbuf[(winstart + i) % N].seq);
     }
 }

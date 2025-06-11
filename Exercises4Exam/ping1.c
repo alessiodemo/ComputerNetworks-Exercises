@@ -252,7 +252,7 @@ int main() {
     // Prepare sockaddr_ll
     for (i = 0; i < sizeof(struct sockaddr_ll); i++) ((char *)&sll)[i] = 0;
     sll.sll_family = AF_PACKET;
-    sll.sll_ifindex = if_nametoindex("eth0");
+    sll.sll_ifindex = if_nametoindex("wlp2s0");
     len = sizeof(struct sockaddr_ll);
 
     // Send ICMP request
@@ -271,32 +271,24 @@ int main() {
             return 1;
         }
 
-        if (eth->type == htons(0x0800)) {
-            //[MODIFIED]
-            struct ip_datagram *recv_ip = (struct ip_datagram *)eth->payload;
-            if (recv_ip->proto == 1) { // ICMP
-                struct icmp_packet *recv_icmp = (struct icmp_packet *)recv_ip->payload;
-        
-                if (recv_icmp->type == 11 && recv_icmp->code == 0) {
-                    printf("ICMP TIME EXCEEDED RECEIVED\n");
-        
-                    // <<< Extract and print source IP of the ICMP Time Exceeded
-                    unsigned char *ip_bytes = (unsigned char *)&recv_ip->src;
-                    printf("Router IP: %d.%d.%d.%d\n",
-                        ip_bytes[0], ip_bytes[1], ip_bytes[2], ip_bytes[3]);
-        
-                    print_buffer((unsigned char *)recv_ip, n - 14);
-                    break;
-                }
-        
-                // (Optional) Retain old Echo Reply check if desired
-                if (recv_icmp->type == 0 && recv_icmp->id == htons(0xABCD)) {
-                    printf("ICMP REPLY DETECTED\n");
-                    print_buffer((unsigned char *)recv_ip, 20 + 48);
-                    break;
-                }
-            }
+        //[MODIFIED]
+        if (eth->type == htons(0x0800)) { // Ethernet type = IP
+        if (ip->proto == 1) {         // ICMP
+        struct icmp_packet *recv_icmp = (struct icmp_packet *)ip->payload;
+        if (recv_icmp->type == 0 && recv_icmp->id == htons(0xABCD)) {
+            printf("ICMP Echo Reply received\n");
+            print_buffer((unsigned char *)ip, n - 14);
+            break;
+        } else if (recv_icmp->type == 11 && recv_icmp->code == 0) {
+            // Time Exceeded message received
+            struct in_addr addr;
+            addr.s_addr = ip->src;
+            printf("ICMP Time Exceeded received from: %s\n", inet_ntoa(addr));
+            break;
         }
+    }
+}
+
         
     }
     return 0;

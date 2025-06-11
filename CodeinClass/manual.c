@@ -86,3 +86,35 @@ Destination IP Address	4 byte	IP del destinatario
 Options (opzionale)	variabile	Opzioni extra
 Payload	variabile	Dati da trasportare (es. TCP/UDP/ICMP)*/
 -----------------------------------------------------------------------------------------
+/*ICMP packet
+A cosa serve un pacchetto ICMP?
+
+    Comunicare errori di rete (host irraggiungibile, TTL scaduto, ecc.)
+
+    Usato per strumenti come ping e traceroute
+
+    Segnalare problemi come:
+
+        Host o porta non raggiungibile
+
+        Router congestionato
+
+        Problemi di instradamento
+
+Struttura di un pacchetto ICMP
+Campo	Dimensione	Descrizione
+Type	1 byte	Tipo del messaggio (es. 8 = Echo Request, 0 = Echo Reply)
+Code	1 byte	Codice specifico per quel tipo (es. 0 = standard)
+Checksum	2 byte	Controllo errori sull’intero pacchetto ICMP
+Rest of Header	4 byte	Dipende dal tipo: identificatore, sequenza, MTU, ecc.
+Payload	variabile	Dati (es. timestamp o parte del pacchetto IP originale)*/
+-----------------------------------------------------------------------------------------
+[ Ethernet Frame ]
+  └── [ IP Packet ]
+        └── Protocol: ICMP (1)
+              └── [ ICMP Header ]
+                    ├── Type = 8 (Request)
+                    ├── Code = 0
+                    ├── Checksum
+                    └── Payload (es. timestamp)
+-----------------------------------------------------------------------------------------

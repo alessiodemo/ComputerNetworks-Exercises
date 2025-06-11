@@ -1,3 +1,13 @@
+/*
+OBIETTIVO DEL PROGRAMMA
+
+    Leggere input da stdin (standard input, cioè tastiera) in modo asincrono tramite SIGIO, senza bloccare il programma in attesa.
+
+    Attivare un timer che ogni secondo emette SIGALRM, per dimostrare la gestione simultanea di più segnali.
+
+    Usare poll() per verificare se c'è input pronto da leggere, evitando letture bloccanti.
+*/
+
 #include <poll.h>        // For poll(), used to check input readiness
 #include<stdio.h>        // Standard I/O functions
 #include<signal.h>       // For signal handling (SIGIO, SIGALRM)

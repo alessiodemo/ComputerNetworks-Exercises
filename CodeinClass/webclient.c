@@ -10,6 +10,14 @@ int tmp; // Variable to temporarily store errno
 
 int main()
 {
+    /*
+    struct sockaddr_in {
+    sa_family_t    sin_family;  // Famiglia dell'indirizzo (AF_INET per IPv4)
+    in_port_t      sin_port;    // Numero di porta (formato network byte order)
+    struct in_addr sin_addr;    // Indirizzo IP (struttura con campo s_addr)
+    char           sin_zero[8]; // Padding per uguagliare la dimensione di sockaddr
+    };
+    */
     struct sockaddr_in addr; // Structure to hold server address
     int i, s, t;             // i: unused, s: socket descriptor, t: bytes read
     char request[5000], response[1000000]; // Buffers for HTTP request and response

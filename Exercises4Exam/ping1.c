@@ -272,6 +272,7 @@ int main() {
         }
 
         if (eth->type == htons(0x0800)) {
+            //[MODIFIED]
             struct ip_datagram *recv_ip = (struct ip_datagram *)eth->payload;
             if (recv_ip->proto == 1) { // ICMP
                 struct icmp_packet *recv_icmp = (struct icmp_packet *)recv_ip->payload;

@@ -251,6 +251,7 @@ int main() {
                 print_buffer((unsigned char *)ip, 20 + 48);
                 break;
         
+                //[MODIFIED]
             } else if (icmp->type == 3) {  // Destination Unreachable
                 printf("ICMP DESTINATION UNREACHABLE RECEIVED\n");
                 printf(" - Code: %d\n", icmp->code);

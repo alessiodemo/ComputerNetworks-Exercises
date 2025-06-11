@@ -1,3 +1,14 @@
+s = socket(AF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
+/*
+    serve per creare un socket raw a basso livello, che permette di leggere e scrivere pacchetti Ethernet direttamente (compresi gli header), bypassando lo stack TCP/IP.
+    È usato spesso per sniffing di pacchetti, programmi ARP/ICMP personalizzati, e tool tipo ping, tcpdump, ecc.
+    - AF_PACKET	Specifica che vuoi lavorare a livello Ethernet (livello 2 ISO/OSI)
+    - SOCK_RAW	Tipo di socket: permette di inviare/leggere pacchetti grezzi, inclusi header
+    - htons(ETH_P_ALL)	Filtro sul protocollo: ETH_P_ALL = tutti i protocolli Ethernet. htons converte in big endian (network byte order)
+
+    */
+
+-----------------------------------------------------------------------------
 /*
     La struttura struct sockaddr_in è definita nel file header <netinet/in.h> ed è usata per rappresentare indirizzi IPv4 in programmazione di rete con i socket.
     È una struttura specifica per IPv4, usata spesso con socket TCP o UDP.
@@ -8,6 +19,27 @@
     struct in_addr sin_addr;    // Indirizzo IP (struttura con campo s_addr)
     char           sin_zero[8]; // Padding per uguagliare la dimensione di sockaddr
     };
+-----------------------------------------------------------------------------
+/*
+    A cosa serve sockaddr_ll?
+    È usata per inviare o ricevere pacchetti direttamente sul livello datalink, bypassando gli strati IP/TCP/UDP. In particolare:
+    Viene usata con socket di tipo PF_PACKET.
+    Permette di specificare l’interfaccia di rete (eth0, wlan0, ecc.) su cui operare.
+    Può indicare direttamente l’indirizzo MAC di destinazione.
+    È usata in sendto() o recvfrom() per lavorare a livello Ethernet.
+*/
+#include <linux/if_packet.h>
+#include <net/ethernet.h> // ETH_P_ALL
+
+struct sockaddr_ll {
+    unsigned short sll_family;      // Sempre AF_PACKET
+    unsigned short sll_protocol;    // Protocollo livello superiore (es. htons(ETH_P_IP))
+    int            sll_ifindex;     // Indice dell'interfaccia (ottenuto con ioctl)
+    unsigned short sll_hatype;      // Tipo hardware (ARPHRD_ETHER per Ethernet)
+    unsigned char  sll_pkttype;     // Tipo di pacchetto (es. PACKET_OUTGOING)
+    unsigned char  sll_halen;       // Lunghezza indirizzo hardware
+    unsigned char  sll_addr[8];     // Indirizzo hardware (es. MAC address)
+};
 --------------------------------------------------------------------------------------
 /*
     È una struttura generica, usata come interfaccia comune per diverse famiglie di indirizzi (IPv4, IPv6, UNIX domain socket, ecc.).

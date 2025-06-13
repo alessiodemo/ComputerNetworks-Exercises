@@ -290,10 +290,12 @@ int main() {
             ip = (struct ip_datagram *) eth->payload;
             icmp = (struct icmp_packet *) ip->payload;
 
-            if(eth->type != htons(0x0800) || ip->proto != 1)
-                continue;
+            //if(eth->type != htons(0x0800) || ip->proto != 1)
+              //  continue;
 
             unsigned char *sender_ip = (unsigned char *)&ip->src;
+
+            printf("icmp_type:" + icmp->type);
 
             if (icmp->type == 11) { // Time Exceeded
                 printf("%2d: %d.%d.%d.%d (Time Exceeded)\n", ttl_val,

@@ -165,3 +165,40 @@ int socket(int domain, int type, int protocol);
     protocol: indica il protocollo specifico da usare (di solito può essere 0 per lasciare scegliere al sistema operativo quello predefinito per quel domain e type).
         IPPROTO_TCP, IPPROTO_UDP, IPPROTO_ICMP, ...
         ETH_P_ALL (in htons) → per ricevere tutti i protocolli Ethernet (solo per AF_PACKET)*/
+-------------------------------------------------------------------------------------------
+struct pollfd {
+    int fd;         // File descriptor da monitorare
+    short events;   // Eventi da attendere (richiesti)
+    short revents;  // Eventi verificatisi (scritti da poll())
+};
+/*
+fd -> Il file descriptor che vuoi monitorare (es. stdin ha fd = 0, socket, file aperti, ecc.).
+events -> I tipi di eventi che ti interessano controllare. È una maschera di bit con valori come:
+    POLLIN – c'è qualcosa da leggere (es. dati disponibili).
+    POLLOUT – puoi scrivere senza bloccare.
+    POLLERR – errore sul file descriptor.
+    POLLHUP – hang up (es. chiusura di una connessione).
+    POLLPRI – dati "urgenti" disponibili (es. OOB in socket TCP).
+revents -> Valori impostati da poll() dopo il controllo, per indicare quali eventi sono effettivamente avvenuti. È una maschera con gli stessi valori di events.
+*/
+
+int poll(struct pollfd fds[], nfds_t nfds, int timeout);
+/*
+fds[]: array di strutture pollfd, ognuna contenente:
+    fd: file descriptor da controllare
+    events: tipo di evento da controllare (es. POLLIN, POLLOUT)
+    revents: campo dove poll() scrive gli eventi effettivamente verificatisi
+nfds: numero di elementi nell'array fds[]
+timeout:
+    = 0 → tempo massimo (in millisecondi) da attendere
+    0 → ritorna immediatamente (polling non bloccante)
+    -1 → attende indefinitamente finché non si verifica un evento
+*/
+-----------------------------------------------------------------------------------
+int sigaction(int signum, const struct sigaction *act, struct sigaction *oldact);
+/*
+Parametri:
+    signum: il numero del segnale (es. SIGINT, SIGALRM, SIGIO, ecc.)
+    act: puntatore a una struct sigaction che descrive come gestire il segnale
+    oldact: se non NULL, qui verrà salvato il vecchio handler (utile per ripristinarlo più tardi)
+*/

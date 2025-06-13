@@ -150,3 +150,18 @@ Payload	variabile	Dati (es. timestamp o parte del pacchetto IP originale)*/
                     ├── Checksum
                     └── Payload (es. timestamp)
 -----------------------------------------------------------------------------------------
+//SOCKET creation
+int socket(int domain, int type, int protocol);
+/* Parametri
+
+    domain (o address family): specifica la famiglia di protocolli da usare.
+        AF_INET → IPv4
+        AF_INET6 → IPv6
+        AF_PACKET → livello link layer (Ethernet) — usato per raw socket
+    type: specifica il tipo di socket.
+        SOCK_STREAM → per connessioni orientate (es. TCP)
+        SOCK_DGRAM → per datagrammi (es. UDP)
+        SOCK_RAW → per pacchetti raw (basso livello, come nel tuo programma)
+    protocol: indica il protocollo specifico da usare (di solito può essere 0 per lasciare scegliere al sistema operativo quello predefinito per quel domain e type).
+        IPPROTO_TCP, IPPROTO_UDP, IPPROTO_ICMP, ...
+        ETH_P_ALL (in htons) → per ricevere tutti i protocolli Ethernet (solo per AF_PACKET)*/

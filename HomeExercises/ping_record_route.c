@@ -267,7 +267,7 @@ int main() {
     printf("Ethernet header\n");
     print_buffer((unsigned char *)eth, 14);
     printf("Ethernet payload\n");
-    print_buffer((unsigned char *)ip, 68);
+    print_buffer((unsigned char *)ip, 60+48);
 
     // Prepare sockaddr_ll
     for (i = 0; i < sizeof(struct sockaddr_ll); i++) ((char *)&sll)[i] = 0;
@@ -295,7 +295,7 @@ int main() {
             printf("ICMP PKT RECEIVED:\n");
             if (icmp->type == 0 && icmp->id == htons(0xABCD)) {
                 printf("ICMP REPLY DETECTED\n");
-                print_buffer((unsigned char *)ip, 20 + 48);
+                print_buffer((unsigned char *)ip, 60 + 48);
                 break;
             }
         }

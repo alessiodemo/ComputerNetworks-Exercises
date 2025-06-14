@@ -111,30 +111,34 @@ void forge_icmp(struct icmp_packet *icmp, unsigned char type, unsigned char code
 
 // Construct an IP header
 void forge_ip(struct ip_datagram *ip, unsigned short payloadlen, unsigned char *dst) {
-    unsigned char *options = (unsigned char *)(ip+1);  // options after the ip struct
+    unsigned char *options = (unsigned char *)(ip + 1); // Immediately after struct
+    int optlen = 39;  // RR option
+    int padlen = 1;   // Padding to align to 4-byte boundary
+    int headerlen = 20 + optlen + padlen;
 
-    ip->ver_ihl = 0x4F;                      // IPv4 and header length = 20 bytes
-    ip->tos = 0;                             // No special TOS
-    ip->totlen = htons(payloadlen + IR_HDRLEN);     // Total length
-    ip->id = htons(0x1234);                  // Arbitrary ID
-    ip->flags_offs = htons(0);               // No fragmentation
-    ip->ttl = 128;                           // TTL
-    ip->proto = 1;                           // ICMP protocol
+    ip->ver_ihl = 0x4F;                     // Version = 4, IHL = 15 (60 bytes)
+    ip->tos = 0;
+    ip->totlen = htons(headerlen + payloadlen);
+    ip->id = htons(0x1234);
+    ip->flags_offs = htons(0);
+    ip->ttl = 128;
+    ip->proto = 1;
     ip->checksum = 0;
-    ip->src = *((unsigned int *)myip);       // Source IP
-    ip->dst = *((unsigned int *)dst);        // Destination IP
+    ip->src = *((unsigned int *)myip);
+    ip->dst = *((unsigned int *)dst);
 
-    options[0]=IP_OPT_RECORD_ROUTE;
-    options[1]= IP_OPT_RR_LEN;
-    options[2]=4;
-    for (int i = 3; i < IP_OPT_RR_LEN; i++) options[i] = 0; // Route data + padding
+    // Record Route Option (type 7)
+    options[0] = 7;               // Option type: Record Route
+    options[1] = optlen;          // Total length of the option
+    options[2] = 4;               // Pointer: where to write the next IP (starts at 4)
+    for (int i = 3; i < optlen; i++) options[i] = 0; // Clear route data
 
-    // Padding per raggiungere 60 byte
-    for (int i = IP_OPT_RR_LEN; i < (IP_HEADER_TOTAL_LEN - IP_HEADER_BASE_LEN); i++)
-        options[i] = 0;
+    options[optlen] = 0; // 1 byte padding (NOP or End of Option)
 
-    ip->checksum = htons(checksum((unsigned char *)ip, 20)); // Calculate checksum
+    // Compute checksum over full header (60 bytes)
+    ip->checksum = htons(checksum((unsigned char *)ip, headerlen));
 }
+
 
 // Print raw bytes in buffer for debugging
 void print_buffer(unsigned char* buffer, int size) {
@@ -236,7 +240,8 @@ int main() {
 
     eth = (struct eth_frame *) buffer;
     ip = (struct ip_datagram *) eth->payload;
-    icmp = (struct icmp_packet *) ((unsigned char *)ip + IP_HEADER_TOTAL_LEN);
+    icmp = (struct icmp_packet *)((unsigned char *)ip + 60);
+
 
 
     // Create ICMP and IP packets

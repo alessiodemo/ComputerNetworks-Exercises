@@ -356,6 +356,17 @@ struct tcp_segment {
     unsigned char payload[TCP_MSS]; // Payload del segmento TCP (dati applicativi)
 };
 
+/*
+                     +--------+--------+--------+--------+
+                     |           Source Address          |
+                     +--------+--------+--------+--------+
+                     |         Destination Address       |
+                     +--------+--------+--------+--------+
+                     |  zero  |  PTCL  |    TCP Length   |
+                     +--------+--------+--------+--------+
+
+*/
+
 // Struttura per la pseudo-header TCP (usata per il calcolo del checksum TCP)
 struct pseudoheader {
     unsigned int s_addr, d_addr; // Indirizzi IP sorgente e destinazione
@@ -454,6 +465,15 @@ void congctrl_fsm(struct tcpctrlblk * tcb, int event, struct tcp_segment * tcp,i
             break;
 
         case CONG_AVOID: // Stato di Congestion Avoidance
+
+         /*
+RFC 5681 page 9:
+1.   On the first and second duplicate ACKs received at a sender, a
+     TCP SHOULD send a segment of previously unsent data per [RFC3042] provided that the receiver's advertised window allows, the total
+     FlightSize would remain less than or equal to cwnd plus 2*SMSS, and that new data is available for transmission.  Further, the
+     TCP sender MUST NOT change cwnd to reflect these two segments [RFC3042].
+*/
+
             // Logica per gestire ACK duplicati e Limited Transmit (RFC 3042)
             if((((tcp->flags)&(SYN|FIN))==0) &&  streamsegmentsize==0 && (htons(tcp->window) == tcb->radwin) && (tcp->ack == tcb->last_ack))
                 if( tcp->ack == tcb->last_ack)
@@ -465,6 +485,13 @@ void congctrl_fsm(struct tcpctrlblk * tcb, int event, struct tcp_segment * tcp,i
                 if (tcb->flightsize<=tcb->cgwin + 2* (tcb->mss))
                     tcb->lta = tcb->repeated_acks+2*tcb->mss; // Permette trasmissione limitata (extra-TX-win)
             }
+
+            /*
+ 2.  When the third duplicate ACK is received, a TCP MUST set ssthresh to no more than the value given in equation (4).  When [RFC3042]
+     is in use, additional data sent in limited transmit MUST NOT be included in this calculation.
+                                                                        ssthresh = max (FlightSize / 2, 2*SMSS)            (4)
+*/
+
             else if (tcb->repeated_acks == 3){ // Terzo ACK duplicato (Fast Retransmit/Recovery)
                 printf(" THIRD ACK...\n");
                 if(tcb->txfirst!= NULL){
@@ -472,6 +499,9 @@ void congctrl_fsm(struct tcpctrlblk * tcb, int event, struct tcp_segment * tcp,i
                     tcb->ssthreshold = MAX(tcb->flightsize/2,2*tcb->mss);
                     tcb->cgwin = tcb->ssthreshold + 3*tcb->mss; /* Il terzo incremento è nello stato FAST_RECOV */
 
+                    /*
+ 3.  The lost segment starting at SND.UNA MUST be retransmitted and cwnd set to ssthresh plus 3*SMSS.  This artificially "inflates"
+       the congestion window by the number of segments (three) that have left the network and which the receiver has buffered. */
                     // Ritrasmetti il segmento perso (SND.UNA) immediatamente
                     unsigned int shifter = MIN(htonl(tcb->txfirst->segment->seq),htonl(tcb->txfirst->segment->ack));
                     if(htonl(tcb->txfirst->segment->seq)-shifter <= (htonl(tcp->ack)-shifter))
@@ -489,11 +519,20 @@ void congctrl_fsm(struct tcpctrlblk * tcb, int event, struct tcp_segment * tcp,i
             break;
 
         case FAST_RECOV: // Stato di Fast Recovery
+
+        /*
+   4.  For each additional duplicate ACK received (after the third), cwnd MUST be incremented by SMSS.  This artificially inflates the
+       congestion window in order to reflect the additional segment that has left the network.
+*/
             if(tcb->last_ack==tcp->ack) { // Se è un altro ACK duplicato
                 tcb->cgwin += tcb->mss; // Incrementa cwnd di 1 MSS per ogni ACK duplicato aggiuntivo
                 printf(" Increasing congestion window to : %d\n", tcb->cgwin);
             }
-            else { // Se è un ACK "nuovo" (che ACKa dati precedentemente non ACKati)
+            else {
+                /*
+   6.  When the next ACK arrives that acknowledges previously unacknowledged data, a TCP MUST set cwnd to ssthresh (the value
+       set in step 2).  This is termed "deflating" the window.
+*/// Se è un ACK "nuovo" (che ACKa dati precedentemente non ACKati)
                 tcb->cgwin = tcb->ssthreshold; // "Sgonfia" la finestra (setta cwnd a ssthresh)
                 tcb->cong_st=CONG_AVOID; // Torna a Congestion Avoidance
                 printf("FAST_RECOVERY ---> CONG_AVOID\n");

@@ -293,7 +293,7 @@ int main() {
 
         if (eth->type == htons(0x0800) && ip->proto == 1) { // IP and ICMP
             printf("ICMP PKT RECEIVED:\n");
-            if (icmp->type == 0 && icmp->id == htons(0xABCD)) {
+            if (icmp->type == 0 && icmp->id == htons(0xABCD)) {k
                 printf("ICMP REPLY DETECTED\n");
                 print_buffer((unsigned char *)ip, 60 + 48);
                 break;

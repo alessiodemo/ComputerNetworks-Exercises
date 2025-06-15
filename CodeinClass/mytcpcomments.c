@@ -15,6 +15,8 @@
 #include <stdlib.h>     // Per malloc, free, atoi, rand, abs
 #include <poll.h>       // Per poll, pollfd, POLLIN, POLLOUT
 #include <time.h>       // Per clock, CLOCKS_PER_SEC
+#include <asm-generic/signal-defs.h>
+#include <asm-generic/fcntl.h>
 
 // Definizioni di costanti
 #define MAXFRAME 30000        // Dimensione massima del frame Ethernet

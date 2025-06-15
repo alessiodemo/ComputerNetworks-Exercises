@@ -15,6 +15,8 @@
 #include <stdlib.h>
 #include <poll.h>
 #include <time.h>
+#include <asm-generic/signal-defs.h>
+#include <asm-generic/fcntl.h>
 
 
 #define MAXFRAME 30000

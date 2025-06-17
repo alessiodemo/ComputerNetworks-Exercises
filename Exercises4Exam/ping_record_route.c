@@ -39,6 +39,12 @@ struct ip_datagram {
     unsigned short checksum;      // Header checksum
     unsigned int src;             // Source IP
     unsigned int dst;             // Destination IP
+
+    // record route section
+    unsigned char option_type;
+    unsigned char length;
+    unsigned char pointer;
+    unsigned char route_data[37];
     unsigned char payload[1];     // Payload (ICMP, etc.)
 };
 
@@ -126,11 +132,10 @@ void forge_ip(struct ip_datagram *ip, unsigned short payloadlen, unsigned char *
     ip->checksum = 0;
     ip->src = *((unsigned int *)myip);
     ip->dst = *((unsigned int *)dst);
+    ip-> option_type=0x7;
+    ip->length=40;      // lunghezza dell'intera route section
+    ip->pointer=4;
 
-    // Record Route Option (type 7)
-    options[0] = 7;               // Option type: Record Route
-    options[1] = optlen;          // Total length of the option
-    options[2] = 4;               // Pointer: where to write the next IP (starts at 4)
     for (int i = 3; i < optlen; i++) options[i] = 0; // Clear route data
 
     options[optlen] = 0; // 1 byte padding (NOP or End of Option)
@@ -267,7 +272,7 @@ int main() {
     printf("Ethernet header\n");
     print_buffer((unsigned char *)eth, 14);
     printf("Ethernet payload\n");
-    print_buffer((unsigned char *)ip, 60+48);
+    print_buffer((unsigned char *)ip, 60+48); // Stampa 68 byte (20 byte IP header + 48 byte ICMP)
 
     // Prepare sockaddr_ll
     for (i = 0; i < sizeof(struct sockaddr_ll); i++) ((char *)&sll)[i] = 0;
@@ -290,14 +295,14 @@ int main() {
             perror("Recvfrom Failed");
             return 1;
         }
-
         if (eth->type == htons(0x0800) && ip->proto == 1) { // IP and ICMP
             printf("ICMP PKT RECEIVED:\n");
             if (icmp->type == 0 && icmp->id == htons(0xABCD)) {
                 printf("ICMP REPLY DETECTED\n");
                 print_buffer((unsigned char *)ip, 60 + 48);
                 break;
-            }
+            }else if(icmp->type == 12){  // the option nonè formata correttamente
+                printf("Malformed datagram detected\n");
         }
     }
 

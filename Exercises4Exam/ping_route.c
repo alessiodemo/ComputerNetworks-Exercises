@@ -1,3 +1,20 @@
+/*
+Modify it, in such a way that it constructs the IP datagram by adding the optional "Record Route" field to the IP header (described in RFC 791, see below). This field reserves a free area (called route data) inside the extended IP header, intended to contain the list of IP addresses of the nodes crossed by the packet.
+Each node crossed, in fact, in the presence of the "Record Route" option, should append its IP address in the area route data to the IP addresses list already saved by the previous nodes. The fields length and pointer allow you to manage the memory area during the packet trip, as reported in the text taken from RFC 791:  
+The candidate will know that he has well formed the extended IP header, if he verifies that the echo reply returnfrom the destination will bring the option "Record Route" in the IP header containing in the "route data" field the list of IP addresses of the nodes traversed during the echo request process. 
+
+ For the purpose of carrying out the task, also keep in mind the following:
+●	Reserve the maximum possible size of bytes in this field, taking into account all the constraints of the IP standard
+●	Send the packet to node 147.162.2.100
+●	If the option is not formed correctly, the first intermediate node that recognizes an error sends to our node an ICMP type 12 message (0xC) described by RFC792 (see below)
+
+
+
+*/
+
+
+
+
 #include<stdio.h>
 #include <net/if.h>
 #include <arpa/inet.h>

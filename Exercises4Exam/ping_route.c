@@ -107,7 +107,7 @@ ip-> tos = 0;
 ip-> totlen = htons(payloadlen+60);
 ip-> id = htons(0x1234);
 ip-> flags_offs=htons(0);
-ip-> ttl=8;
+ip-> ttl=128;
 ip-> proto=1;
 ip-> checksum = htons(0);
 ip-> src = *((unsigned int *)myip);
@@ -257,6 +257,14 @@ while(j--){
                                 printf("ICMP REPLY DETECTED\n");
                                 // IP Datagram + ICMP Packet
                                 print_buffer((unsigned char * ) ip, 60 + 48 );
+                                if(ip->option_type==7) {
+                                    int recrod_size=((ip->pointer)-4)/4;
+                                    printf("Found record route , size: %d\n", recrod_size);
+                                    for(int j=0;j<recrod_size;j++)
+                                    {
+                                        printf("Record: %d: %u.%u.%u.%u\n", j, ip->route_data[4*j], ip->route_data[4*j+1], ip->route_data[4*j+2], ip->route_data[4*j+3]);
+                                    }
+                                }
                                 break;
                         }else if (icmp->type == 12 && icmp->code == 0){
                                 printf("IP Header:\n");

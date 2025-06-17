@@ -90,8 +90,8 @@ Struttura di un Ethernet Frame (standard Ethernet II)
 
 Ecco i principali campi di un frame Ethernet:
 Campo	Dimensione	Descrizione
-Preamble	7 byte	Sequenza di sincronizzazione (non sempre visibile nel software)
-Start Frame Delimiter (SFD)	1 byte	Indica l'inizio del frame (valore: 0xAB)
+Preamble	7 byte	Sequenza di sincronizzazione (non sempre visibile nel software) -> spesso ignorato
+Start Frame Delimiter (SFD)	1 byte	Indica l'inizio del frame (valore: 0xAB) -> spesso ignorato
 Destination MAC	6 byte	Indirizzo MAC del destinatario
 Source MAC	6 byte	Indirizzo MAC del mittente
 EtherType	2 byte	Specifica il protocollo del payload (es: 0x0800 per IPv4, 0x0806 per ARP)
@@ -135,7 +135,7 @@ A cosa serve un pacchetto ICMP?
 
 Struttura di un pacchetto ICMP
 Campo	Dimensione	Descrizione
-Type	1 byte	Tipo del messaggio (es. 8 = Echo Request, 0 = Echo Reply)
+Type	1 byte	Tipo del messaggio (es. 8 = Echo Request, 0 = Echo Reply, 11 = time exceeded)
 Code	1 byte	Codice specifico per quel tipo (es. 0 = standard)
 Checksum	2 byte	Controllo errori sull’intero pacchetto ICMP
 Rest of Header	4 byte	Dipende dal tipo: identificatore, sequenza, MTU, ecc.

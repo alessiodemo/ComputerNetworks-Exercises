@@ -280,7 +280,7 @@ int main() {
         int received =0;
         for(j=0;j<10;j++) {
             n = recvfrom(s, buffer, sizeof(buffer), 0, &saddr, &saddr_len);
-            if(n==1) {
+            if(n==-1) {
                 perror("Recvfrom Failed");
                 continue;
             }
